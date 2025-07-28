@@ -1,0 +1,4 @@
+{
+  "executionMode": "parallel",
+  "browserMode": "headless"
+}
