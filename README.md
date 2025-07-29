@@ -234,10 +234,8 @@ Prevents cascading failures.
 
 ---
 
-## 9. Submission
-- Push your code to GitHub and provide access to `abhinay-srikant` and `samiullah`.
 
----
+
 
 ## 10. Troubleshooting
 - If you face issues, check Playwright docs: https://playwright.dev/docs/test-configuration
