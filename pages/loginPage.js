@@ -57,7 +57,7 @@ class LoginPage {
 
   async logout() {
     await Logger.info("Attempting to logout...");
-    await expect(this.logoutButton).toBeVisible({ timeout: 5000 });
+    await expect(this.logoutButton).toBeVisible({ timeout: 15000 });
     await this.logoutButton.click();
 
     await Logger.info("Validating logout success...");

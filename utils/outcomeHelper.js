@@ -7,7 +7,7 @@ const dataPath = path.join(tempDir, "testData.json");
 
 function writeTestData(data) {
 
-  // Ensure the temp folder exists
+ 
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
   }

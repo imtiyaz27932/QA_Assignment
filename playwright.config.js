@@ -30,12 +30,11 @@ const config = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: "html",
+  globalSetup: require.resolve('./global-setup.js'),
   use: {
-    baseURL: process.env.BASE_URL,
     headless: isHeadless,
-    trace: "on-first-retry",
-    screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    //storageState: 'storageState.json',
+     baseURL: process.env.BASE_URL,
   },
   projects: [
     {
