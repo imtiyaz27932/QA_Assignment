@@ -1,0 +1,116 @@
+{
+  "validUsers": [
+    {
+      "id": "user_001",
+      "email": "testuser1@example.com",
+      "password": "SecurePass123!",
+      "firstName": "John",
+      "lastName": "Doe",
+      "phone": "+1-555-0123",
+      "role": "user",
+      "isActive": true,
+      "profile": {
+        "bio": "Software developer with 5 years of experience",
+        "location": "New York, NY",
+        "website": "https://johndoe.dev",
+        "skills": ["JavaScript", "Python", "React"]
+      }
+    },
+    {
+      "id": "user_002",
+      "email": "admin@example.com",
+      "password": "AdminPass456!",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "phone": "+1-555-0456",
+      "role": "admin",
+      "isActive": true,
+      "profile": {
+        "bio": "System administrator and DevOps engineer",
+        "location": "San Francisco, CA",
+        "website": "https://janesmith.com",
+        "skills": ["Docker", "Kubernetes", "AWS", "Linux"]
+      }
+    },
+    {
+      "id": "user_003",
+      "email": "manager@example.com",
+      "password": "ManagerPass789!",
+      "firstName": "Bob",
+      "lastName": "Johnson",
+      "phone": "+1-555-0789",
+      "role": "manager",
+      "isActive": true,
+      "profile": {
+        "bio": "Product manager with expertise in agile methodologies",
+        "location": "Austin, TX",
+        "website": "https://bobjohnson.net",
+        "skills": ["Product Management", "Scrum", "Analytics"]
+      }
+    }
+  ],
+  "invalidUsers": [
+    {
+      "id": "invalid_001",
+      "email": "invalid-email",
+      "password": "weak",
+      "firstName": "",
+      "lastName": "",
+      "phone": "invalid-phone",
+      "role": "invalid-role"
+    },
+    {
+      "id": "invalid_002",
+      "email": "test@",
+      "password": "",
+      "firstName": "Test",
+      "lastName": "User",
+      "phone": "123",
+      "role": ""
+    }
+  ],
+  "testUsers": [
+    {
+      "id": "test_001",
+      "email": "qa.tester@example.com",
+      "password": "QATester123!",
+      "firstName": "Alex",
+      "lastName": "Tester",
+      "phone": "+1-555-9999",
+      "role": "tester",
+      "isActive": true,
+      "profile": {
+        "bio": "Quality assurance engineer",
+        "location": "Remote",
+        "website": "https://alextester.com",
+        "skills": ["Test Automation", "Selenium", "Playwright", "API Testing"]
+      }
+    }
+  ],
+  "bulkUsers": [
+    {
+      "id": "bulk_001",
+      "email": "bulk1@example.com",
+      "password": "BulkUser123!",
+      "firstName": "Bulk",
+      "lastName": "User1",
+      "role": "user"
+    },
+    {
+      "id": "bulk_002",
+      "email": "bulk2@example.com",
+      "password": "BulkUser123!",
+      "firstName": "Bulk",
+      "lastName": "User2",
+      "role": "user"
+    },
+    {
+      "id": "bulk_003",
+      "email": "bulk3@example.com",
+      "password": "BulkUser123!",
+      "firstName": "Bulk",
+      "lastName": "User3",
+      "role": "user"
+    }
+  ]
+}

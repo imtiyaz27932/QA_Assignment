@@ -1,0 +1,136 @@
+{
+  "validProducts": [
+    {
+      "id": "prod_001",
+      "name": "Wireless Bluetooth Headphones",
+      "description": "High-quality wireless headphones with noise cancellation",
+      "price": 199.99,
+      "category": "Electronics",
+      "brand": "TechSound",
+      "sku": "TS-WH-001",
+      "inStock": true,
+      "quantity": 50,
+      "images": [
+        "headphones_1.jpg",
+        "headphones_2.jpg"
+      ],
+      "specifications": {
+        "color": "Black",
+        "weight": "250g",
+        "batteryLife": "30 hours",
+        "connectivity": "Bluetooth 5.0"
+      },
+      "tags": ["wireless", "bluetooth", "headphones", "noise-cancellation"]
+    },
+    {
+      "id": "prod_002",
+      "name": "Gaming Mechanical Keyboard",
+      "description": "RGB mechanical keyboard for gaming enthusiasts",
+      "price": 149.99,
+      "category": "Gaming",
+      "brand": "GameMaster",
+      "sku": "GM-KB-002",
+      "inStock": true,
+      "quantity": 25,
+      "images": [
+        "keyboard_1.jpg",
+        "keyboard_2.jpg",
+        "keyboard_3.jpg"
+      ],
+      "specifications": {
+        "color": "Black with RGB",
+        "switches": "Cherry MX Red",
+        "layout": "Full-size",
+        "connectivity": "USB-C"
+      },
+      "tags": ["gaming", "mechanical", "keyboard", "rgb"]
+    },
+    {
+      "id": "prod_003",
+      "name": "4K Webcam",
+      "description": "Professional 4K webcam for streaming and video calls",
+      "price": 299.99,
+      "category": "Electronics",
+      "brand": "StreamPro",
+      "sku": "SP-WC-003",
+      "inStock": true,
+      "quantity": 15,
+      "images": [
+        "webcam_1.jpg"
+      ],
+      "specifications": {
+        "resolution": "4K",
+        "framerate": "60fps",
+        "fieldOfView": "90 degrees",
+        "connectivity": "USB 3.0"
+      },
+      "tags": ["webcam", "4k", "streaming", "video-calls"]
+    }
+  ],
+  "outOfStockProducts": [
+    {
+      "id": "prod_004",
+      "name": "Limited Edition Smartwatch",
+      "description": "Special edition smartwatch with premium materials",
+      "price": 599.99,
+      "category": "Wearables",
+      "brand": "LuxTech",
+      "sku": "LT-SW-004",
+      "inStock": false,
+      "quantity": 0,
+      "specifications": {
+        "color": "Gold",
+        "material": "Titanium",
+        "batteryLife": "7 days"
+      },
+      "tags": ["smartwatch", "limited-edition", "premium"]
+    }
+  ],
+  "discountedProducts": [
+    {
+      "id": "prod_005",
+      "name": "Wireless Mouse",
+      "description": "Ergonomic wireless mouse for productivity",
+      "price": 79.99,
+      "originalPrice": 99.99,
+      "discount": 20,
+      "category": "Accessories",
+      "brand": "ErgoTech",
+      "sku": "ET-WM-005",
+      "inStock": true,
+      "quantity": 100,
+      "specifications": {
+        "color": "Silver",
+        "dpi": "1600",
+        "connectivity": "2.4GHz Wireless"
+      },
+      "tags": ["wireless", "mouse", "ergonomic", "sale"]
+    }
+  ],
+  "bulkProducts": [
+    {
+      "id": "prod_bulk_001",
+      "name": "Basic USB Cable",
+      "price": 9.99,
+      "category": "Accessories",
+      "inStock": true,
+      "quantity": 500
+    },
+    {
+      "id": "prod_bulk_002",
+      "name": "Phone Case",
+      "price": 14.99,
+      "category": "Accessories",
+      "inStock": true,
+      "quantity": 200
+    },
+    {
+      "id": "prod_bulk_003",
+      "name": "Screen Protector",
+      "price": 7.99,
+      "category": "Accessories",
+      "inStock": true,
+      "quantity": 300
+    }
+  ]
+}
