@@ -1,0 +1,338 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test against'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - dev
+      browser:
+        description: 'Browser to run tests on'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - chromium
+          - firefox
+          - webkit
+      test_type:
+        description: 'Type of tests to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - smoke
+          - regression
+          - api
+          - mobile
+
+env:
+  NODE_VERSION: '18'
+  PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ${{ fromJSON(github.event.inputs.browser == 'all' && '["chromium", "firefox", "webkit"]' || format('["{0}"]', github.event.inputs.browser || 'chromium')) }}
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+        key: ${{ runner.os }}-playwright-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
+
+    - name: Set environment
+      run: |
+        if [ "${{ github.event.inputs.environment }}" != "" ]; then
+          echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+        elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "ENVIRONMENT=production" >> $GITHUB_ENV
+        elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+          echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+        else
+          echo "ENVIRONMENT=dev" >> $GITHUB_ENV
+        fi
+
+    - name: Set BASE_URL based on environment
+      run: |
+        case "${{ env.ENVIRONMENT }}" in
+          production)
+            echo "BASE_URL=https://example.com" >> $GITHUB_ENV
+            ;;
+          staging)
+            echo "BASE_URL=https://staging.example.com" >> $GITHUB_ENV
+            ;;
+          dev)
+            echo "BASE_URL=https://dev.example.com" >> $GITHUB_ENV
+            ;;
+          *)
+            echo "BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+            ;;
+        esac
+
+    - name: Configure test settings
+      run: |
+        node utils/setConfig.js env:${{ env.ENVIRONMENT }}
+        node utils/setConfig.js headless
+
+    - name: Run Smoke Tests
+      if: ${{ github.event.inputs.test_type == 'smoke' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '' }}
+      run: npm run test:smoke -- --project=${{ matrix.browser }}
+      env:
+        BASE_URL: ${{ env.BASE_URL }}
+        CI: true
+
+    - name: Run API Tests
+      if: ${{ github.event.inputs.test_type == 'api' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '' }}
+      run: npm run test:api -- --project=${{ matrix.browser }}
+      env:
+        BASE_URL: ${{ env.BASE_URL }}
+        CI: true
+
+    - name: Run Regression Tests
+      if: ${{ github.event.inputs.test_type == 'regression' || (github.event.inputs.test_type == 'all' && github.event_name == 'schedule') }}
+      run: npm run test:regression -- --project=${{ matrix.browser }}
+      env:
+        BASE_URL: ${{ env.BASE_URL }}
+        CI: true
+
+    - name: Run Mobile Tests
+      if: ${{ github.event.inputs.test_type == 'mobile' || github.event.inputs.test_type == 'all' }}
+      run: npm run test:mobile -- --project=${{ matrix.browser }}
+      env:
+        BASE_URL: ${{ env.BASE_URL }}
+        CI: true
+
+    - name: Run All UI Tests
+      if: ${{ github.event.inputs.test_type == 'all' && github.event_name != 'schedule' }}
+      run: npm run test:ui-tests -- --project=${{ matrix.browser }}
+      env:
+        BASE_URL: ${{ env.BASE_URL }}
+        CI: true
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.browser }}-${{ env.ENVIRONMENT }}
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 30
+
+    - name: Upload Allure results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: allure-results-${{ matrix.browser }}-${{ env.ENVIRONMENT }}
+        path: allure-results/
+        retention-days: 30
+
+    - name: Upload screenshots on failure
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: failure-screenshots-${{ matrix.browser }}-${{ env.ENVIRONMENT }}
+        path: screenshots/
+        retention-days: 30
+
+  # Deploy Allure Report
+  deploy-report:
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout gh-pages
+      uses: actions/checkout@v4
+      with:
+        ref: gh-pages
+        path: gh-pages
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts/
+
+    - name: Setup Node.js for Allure
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install Allure
+      run: npm install -g allure-commandline
+
+    - name: Merge Allure results
+      run: |
+        mkdir -p allure-results
+        find artifacts/ -name "allure-results-*" -type d | while read dir; do
+          cp -r "$dir"/* allure-results/ 2>/dev/null || true
+        done
+
+    - name: Generate Allure report
+      run: |
+        allure generate allure-results --clean -o allure-report
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: allure-report
+        destination_dir: test-reports/${{ github.run_number }}
+
+    - name: Comment PR with report link
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## 🎭 Playwright Test Results
+            
+            Test execution completed for run #${{ github.run_number }}
+            
+            📊 **View detailed report:** https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/test-reports/${{ github.run_number }}/
+            
+            Environment: \`${{ env.ENVIRONMENT }}\`
+            Browsers: ${{ strategy.job-matrix.browser }}
+            
+            The report includes:
+            - ✅ Test execution results
+            - 📸 Screenshots on failures  
+            - 📈 Performance metrics
+            - 🔍 Detailed logs and traces
+            `
+          });
+
+  # Notify on failure
+  notify-failure:
+    if: failure()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Notify Slack on failure
+      if: github.ref == 'refs/heads/main'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#qa-alerts'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        text: |
+          🚨 Playwright tests failed on main branch!
+          
+          Repository: ${{ github.repository }}
+          Commit: ${{ github.sha }}
+          Environment: ${{ env.ENVIRONMENT }}
+          
+          Please check the GitHub Actions logs for details.
+
+  # Performance baseline update
+  update-baseline:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download test results
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts/
+
+    - name: Update performance baseline
+      run: |
+        # Extract performance metrics from test results
+        # This would process the results.json files to update performance baselines
+        echo "Updating performance baselines..."
+        # Implementation would depend on your specific performance tracking needs
+
+    - name: Commit baseline updates
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: 'Update performance baselines [skip ci]'
+        file_pattern: 'baselines/*.json'
+
+  # Security scan
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Code quality checks
+  quality-checks:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint
+
+    - name: Run Prettier check
+      run: npm run format -- --check
+
+    - name: Check for unused dependencies
+      run: npx depcheck
+
+    - name: Audit dependencies
+      run: npm audit --audit-level=moderate
